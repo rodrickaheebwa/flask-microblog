@@ -1,0 +1,51 @@
+# file one
+# create_post.html
+
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>User: {{ current_user.username }}</h1>
+    <h2>Create a post</h2>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.post.label }}<br>
+            {{ form.post(cols=50, rows=4) }}<br>
+            {% for error in form.post.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}
+
+# file two
+# user.html
+# show create_post if user is using their account
+<p><a href="{{ url_for('create_post') }}">Create a post</a></p>
+
+# file three
+# routes.py
+
+from app.models import Post
+from app.forms import CreatePostForm
+
+@app.route('/create_post', methods=['GET', 'POST'])
+@login_required
+def create_post():
+    form = CreatePostForm()
+    if form.validate_on_submit():
+        post = Post(body=form.post.data, user_id=current_user.id)
+        db.session.add(post)
+        db.session.commit()
+        flash('Post created successfully!')
+        #redirect to be changed
+        return redirect(url_for('index'))
+    return render_template('create_post.html', title='Create Post', form=form)
+
+# file four
+# forms.py
+
+class CreatePostForm(FlaskForm):
+    post = TextAreaField('Write Post', validators=[DataRequired(), Length(min=10, max=140)])
+    submit = SubmitField('Post')

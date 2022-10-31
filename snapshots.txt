@@ -1,0 +1,18 @@
+for user in users:
+...     print(user.id, user.username, user.email, user.about_me)
+...     print(user.posts)
+
+1 Rodrick riko@gmail.com None
+SELECT post.id AS post_id, post.body AS post_body, post.timestamp AS post_timestamp, post.user_id AS post_user_id FROM post WHERE ? = post.user_id
+
+2 Jonathan jona@gmail.com I am Rodrick's friend.
+SELECT post.id AS post_id, post.body AS post_body, post.timestamp AS post_timestamp, post.user_id AS post_user_id FROM post WHERE ? = post.user_id
+
+3 Philo philo@gmail.com I love to play Rugby
+SELECT post.id AS post_id, post.body AS post_body, post.timestamp AS post_timestamp, post.user_id AS post_user_id FROM post WHERE ? = post.user_id
+
+for post in posts:
+...     print(post.id, post.body, post.user_id, post.author)
+
+1 Winter is coming. None None
+2 The world cup is a month away. 1 <User Rodrick>

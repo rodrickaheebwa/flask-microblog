@@ -4,5 +4,3 @@ __pycache__
 .flaskenv
 config.py
 app.db
-create_post.txt
-snapshots.txt

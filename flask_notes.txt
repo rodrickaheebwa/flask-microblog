@@ -1,0 +1,79 @@
+In Python, a sub-directory that includes a __init__.py file is considered a package, and can be imported.
+Therefore our app sub-folder is in fact a package.
+
+In Flask, handlers for the application routes are written as Python functions, called view functions. These view functions are mapped to one or more route URLs so that Flask knows what logic to execute when a client requests a given URL.
+The view functions are preceded by decorators. A decorator modifies the function that follows it. In this case, they are used as callbacks to create an association between the URL given as an argument and that function, kinda like event listeners.
+
+Applications deployed on production web servers typically listen on port 443, or sometimes 80 if they do not implement encryption, but access to these ports requires administration rights. Since this application is running in a development environment, Flask uses the freely available port 5000.
+
+Place holders for dynamic content are enclosed in {{...}}. These placeholders represent the parts of the page that are variable and will only be known at runtime.
+
+The operation that converts a template into a complete HTML page is called rendering, done by render_template. This function takes a template filename and a variable list of template arguments and returns the same template, but with all the placeholders in it replaced with actual values.
+
+Jinja is flask's template engine. Django has its own.
+The render_template() function invokes the Jinja2 template engine that comes bundled with the Flask framework. Jinja2 substitutes {{ ... }} blocks with the corresponding values, given by the arguments provided in the render_template() call.
+
+When you use inheritance in the templates, the block control statement is used to define the place where the derived templates can insert themselves.
+
+Use url_for() every time you need to generate an application URL, instead of '/path'. The path should appear just once, at the time of its definition as a route.
+
+Flask uses extensions to help with integration of other parts of a full project that it does not offer; instead of using completely external parts.
+Flask extensions are regular Python packages and are installed with pip.
+Some flask extensions:
+1. flask-wtf - which contains a flask form among others, wtforms - which comes with flask-wtf, and has customised form fields.
+2. flask-sqlalchemy - which provides a flask-friendly wrapper to SQLAlchemy package.
+3. flask-migrate - which is a flask wrapper for Alembic, a database migration framework for SQLAlchemy.
+4. flask-login - manages the user logged-in state.
+
+Object Relational Mappers or ORMs allow applications to manage a database using high-level entities such as classes, objects and methods instead of tables and SQL. The job of the ORM is to translate the high-level operations into database commands.
+SQLAlchemy is an ORM not for one, but for many relational databases. It supports a long list of database engines, including the popular MySQL, PostgreSQL and SQLite. This is extremely powerful, because you can do your development using a simple SQLite database that does not require a server, and then when the time comes to deploy the application on a production server you can choose a more robust MySQL or PostgreSQL server, without having to change your application.
+
+SQLite databases are the most convenient choice for developing small applications, sometimes even not so small ones, as each database is stored in a single file on disk and there is no need to run a database server like MySQL and PostgreSQL.
+
+**Database migrations help when the structure of a relational database changes and you have to move your database to a modified structure.
+
+The data to be stored in the database is represented by a collection of classes, usually called database models. The ORM layer within SQLAlchemy does the translations required to map objects created from these classes into rows in the proper database tables.
+Each class/model represents a table and inherits from db.Model, a base class for all models from Flask-SQLAlchemy. The class defines fields as class variables, each field an instance of db.Column.
+The table created will use snake case naming for the corresponding class name. If you prefer to choose your own table names, you can add an attribute named __tablename__ to the model class, set to the desired name as a string.
+
+It is an unfortunate inconsistency that in some instances such as in a db.relationship() call, the model is referenced by the model class, which typically starts with an uppercase character, while in other cases such as this db.ForeignKey() declaration, a model is given by its database table name, for which SQLAlchemy automatically uses lowercase characters and, for multi-word model names, snake case.
+
+Changes to a database are done in the context of a database session, which can be accessed as db.session. Multiple changes can be accumulated in a session and once all the changes have been registered you can issue a single db.session.commit(), which writes all the changes atomically. If at any time while working on a session there is an error, a call to db.session.rollback() will abort the session and remove any changes stored in it. The important thing to remember is that changes are only written to the database when a commit is issued with db.session.commit(). Sessions guarantee that the database will never be left in an inconsistent state.
+
+The flask shell command is another very useful tool in the flask umbrella of commands. The shell command is the second "core" command implemented by Flask, after run. The purpose of this command is to start a Python interpreter in the context of the application.
+Start the python shell using the command <flask shell> instead of the regular <python>
+
+Requirements of the flask-login extension:
+is_authenticated: a property that is True if the user has valid credentials or False otherwise.
+is_active: a property that is True if the user's account is active or False otherwise.
+is_anonymous: a property that is False for regular users, and True for a special, anonymous user.
+get_id(): a method that returns a unique identifier for the user as a string.
+The UserMixin is added to implement the above.
+
+Every time the database is modified it is necessary to generate a database migration. e.g.
+(venv) $ flask db migrate -m "new fields in user model"
+(venv) $ flask db upgrade
+"I hope you realize how useful it is to work with a migration framework. Any users that were in the database are still there, the migration framework surgically applies the changes in the migration script without destroying any data."
+
+Executing a bit of generic logic ahead of a request being dispatched to a view function is such a common task in web applications that Flask offers it as a native feature.
+
+A server application needs to work in consistent time units, and the standard practice is to use the UTC time zone. Using the local time of the system is not a good idea, because then what goes in the database is dependent on your location.
+
+DATABASE RELATIONSHIPS:
+One-to-Many : Use of a foreign key on the many side. e.g. a user and posts
+Many-to-Many : Use of an auxiliary table called an association table, with the foreign keys of both. e.g. a student-teacher database.
+
+A case of followers: Unlike the student-user, both entities are users. This is a self-referential relationship.
+Since an auxiliary table has no data other than the foreign keys, it is created without an associated model class.
+
+The "backref" argument defines the other side of the relationship, from posts to users.
+posts = db.relationship('Post', backref='author', lazy='dynamic')
+posts defines the relationship from users to posts while author defines the relationship from posts to users.
+
+It is always best to move the application logic away from view functions and into models or other auxiliary classes or modules, because it makes unit testing much easier.
+
+UNIT TESTING:
+The best way to ensure that code you have already written continues to work in the future is to create a suite of automated tests that you can re-run each time changes are made.
+
+It is a standard practice to respond to a POST request generated by a web form submission with a redirect. This helps mitigate an annoyance with how the refresh command is implemented in web browsers. All the web browser does when you hit the refresh key is to re-issue the last request. If a POST request with a form submission returns a regular response, then a refresh will re-submit the form. Because this is unexpected, the browser is going to ask the user to confirm the duplicate submission, but most users will not understand what the browser is asking them. But if a POST request is answered with a redirect, the browser is now instructed to send a GET request to grab the page indicated in the redirect, so now the last request is not a POST request anymore, and the refresh command works in a more predictable way.
+This simple trick is called the Post/Redirect/Get pattern. It avoids inserting duplicates when a user inadvertently refreshes the page after submitting a web form.
